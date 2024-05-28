@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "261567700509",
+    "firebase_url": "https://uplbmuni-ea4e0-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "uplbmuni-ea4e0",
+    "storage_bucket": "uplbmuni-ea4e0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261567700509:android:4b32adb9c74c12b28030f4",
+        "android_client_info": {
+          "package_name": "UPLBMuni.expo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "261567700509-h4oqc6v9oh8vfrjjlprr4ftbt20jhffh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "UPLBMuni.expo.app",
+            "certificate_hash": "284c51fced0b9f2beebe6a1d972e83b6540f0777"
+          }
+        },
+        {
+          "client_id": "261567700509-l3thv9d94kjpd27l08ujd7jcgrgnqui2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "UPLBMuni.expo.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "261567700509-dhtg71ueu9h6jsf3dsga81fmqqebu4cb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFhX-SdtEJONvmmrZMswRLerq1HRAfKf4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "261567700509-dhtg71ueu9h6jsf3dsga81fmqqebu4cb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
