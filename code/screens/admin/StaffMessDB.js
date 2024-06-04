@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, onValue, remove } from "firebase/database";
@@ -7,6 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 const StaffMessDB = () => {
   const [staffMessages, setStaffMessages] = useState([]);
   const [expandedMessages, setExpandedMessages] = useState({}); // State for expanded messages
+  const [loading, setLoading] = useState(true); // State for loading
 
   useEffect(() => {
     const supportiveMesRef = ref(db, 'supportivemessages');
@@ -25,6 +26,7 @@ const StaffMessDB = () => {
         }
         const sortedMessages = allMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setStaffMessages(sortedMessages);
+        setLoading(false); // Stop loading once data is fetched
       }
     },{
       onlyOnce: false // Set this if you want to fetch the data only once
@@ -77,6 +79,14 @@ const StaffMessDB = () => {
         console.error('Failed to delete message: ', error);
       });
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
   
   return (
     <View style={styles.container}>
@@ -149,6 +159,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: -1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 export default StaffMessDB

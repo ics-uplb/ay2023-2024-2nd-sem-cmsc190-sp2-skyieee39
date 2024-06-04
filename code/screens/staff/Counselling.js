@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, SafeAreaView,  ActivityIndicator } from 'react-native';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, onValue } from "firebase/database";
 import { useSelector } from 'react-redux';
@@ -10,6 +10,7 @@ const Counselling = () => {
     const [userRequests, setUserRequests] = useState({});
     const [expandedUser, setExpandedUser] = useState({});
     const [modalVisible, setModalVisible] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [userChat, setUserChat] = useState({});
     const uid = useSelector(state => state.user.userId);
 
@@ -34,6 +35,7 @@ const Counselling = () => {
         }
 
         setUserRequests(groupedRequests);
+        setLoading(false); 
         
       }, {
         onlyOnce: false
@@ -58,6 +60,14 @@ const Counselling = () => {
         [userId]: !prevState[userId]
       }));
     };
+
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      );
+    }
 
   return (
     <View style={styles.container}>
@@ -159,6 +169,11 @@ const styles = StyleSheet.create({
     color: '#444444',
     marginTop: 5,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 export default Counselling;

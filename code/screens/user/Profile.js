@@ -44,7 +44,7 @@ const Profile = ({ navigation }) => {
                     style={({ pressed }) => [
                         styles.button,
                         {
-                            backgroundColor: pressed ? '#942037' : '#B7505C' // Change background color when pressed
+                            backgroundColor: pressed ? '#12404f' : '#216a8d' // Change background color when pressed
                         }
                     ]}
                     onPress={signOut}>

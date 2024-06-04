@@ -9,7 +9,7 @@ import { setUserId, setUserName, setContactDetails, setUserPhoto, setEmail } fro
 
 const Login = ({ navigation }) => {
     const dispatch = useDispatch();
-    const emailRegex = /@up\.edu\.ph$/
+const emailRegex = /@up\.edu\.ph$/// 
 
     useEffect(() => {
         GoogleSignin.configure({
@@ -126,7 +126,7 @@ const Login = ({ navigation }) => {
                         style={({ pressed }) => [
                             styles.button,
                             {
-                                backgroundColor: pressed ? '#942037' : '#B7505C' // Change background color when pressed
+                                backgroundColor: pressed ? '#12404f' : '#216a8d' // Change background color when pressed
                             }
                         ]}
                         onPress={() => onGoogleButtonPress('staff')}>
@@ -137,7 +137,7 @@ const Login = ({ navigation }) => {
                     style={({ pressed }) => [
                         styles.button,
                         {
-                            backgroundColor: pressed ? '#942037' : '#B7505C' // Change background color when pressed
+                            backgroundColor: pressed ? '#12404f' : '#216a8d' // Change background color when pressed
                         }
                     ]}
                     onPress={() => onGoogleButtonPress('user')}>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 20,
-        backgroundColor: "#B7505C",
+        backgroundColor: "#619aa9",
     },
     whiteBox: {
         flex: 1,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 32,
         borderRadius: 8,
         elevation: 3,
-        backgroundColor: "#B7505C",
+        backgroundColor: "#216a8d",
     },
     text: {
         fontSize: 16,

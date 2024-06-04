@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
 import React, { useState, useRef } from 'react';
 import AppHeader from '../../components/AppHeader';
 import { useSelector } from 'react-redux';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, update } from "firebase/database";
 
-const EditSuppMess = ({ message }) => {
+const EditSuppMess = ({ message, closeModal }) => {
   const [content, setContent] = useState(message.message); // assuming message object has a 'message' field
   const contentInputRef = useRef(null);
   const userId = useSelector(state => state.user.userId);
@@ -26,9 +26,12 @@ const EditSuppMess = ({ message }) => {
         message: content
       }).then(() => {
         console.log("Supportive message updated successfully!");
+        Alert.alert("Supportive message updated successfully!" )
         setContent(''); // Clear the content after posting
+        closeModal(false);
       }).catch((error) => {
         console.error("Failed to update supportive message: ", error);
+        Alert.alert("Supportive message update failed", error);
       });
     }
   };
@@ -52,6 +55,9 @@ const EditSuppMess = ({ message }) => {
         <TouchableOpacity style={styles.buttonClose} onPress={handlePost}>
           <Text style={styles.textStyle}>Done</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.buttonClose} onPress={() => closeModal(false)}>
+          <Text style={styles.textStyle}>Back</Text>
+        </TouchableOpacity>
         {/* Other components */}
       </View>
     </TouchableWithoutFeedback>
@@ -65,7 +71,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 30,
     borderWidth: 3,
-    borderColor: '#ff9999'
+    borderColor: '#82c3f0'
   },
   textPrompt: {
     fontSize: 18,
@@ -78,7 +84,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 300,
     height: 40,
-    borderColor: '#ff9999',
+    borderColor: '#82c3f0',
     minHeight: 200,
     borderRadius: 8,
     borderWidth: 3,
@@ -87,11 +93,12 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top'
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,
-    margin: 30
+    margin: 30,
+    marginVertical: 15
   },
   textStyle: {
     color: "white",

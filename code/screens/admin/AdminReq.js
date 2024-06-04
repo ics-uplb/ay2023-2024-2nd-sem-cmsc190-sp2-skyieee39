@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, get, update } from "firebase/database";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const AdminReq = () => {
   const [pendingAdmin, setPendingAdmin] = useState([]);
+  const [loading, setLoading] = useState(true); // State for loading
 
     useEffect(() => {
         const fetchPendingAdmin = async () => {
@@ -23,6 +24,7 @@ const AdminReq = () => {
         };
 
         fetchPendingAdmin();
+        setLoading(false);
     }, []);
 
     const approveAdmin = async (userId) => {
@@ -66,6 +68,15 @@ const AdminReq = () => {
         if ( 16 < length && length < 20 )  return 16;
         return 15;
     };
+
+    if (loading) {
+        return (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        );
+      }
+
   return (
     <View style={styles.container}>
             <ScrollView 
@@ -137,6 +148,11 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
       alignItems: 'center',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 

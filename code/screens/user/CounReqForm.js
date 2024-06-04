@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback  } from 'react-native'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Alert  } from 'react-native'
 import React, { useState, useRef } from 'react'
 import AppHeader from '../../components/AppHeader'
 import { useSelector } from 'react-redux';
@@ -7,7 +7,7 @@ import { set, ref } from "firebase/database";
 
 
 
-const CounReqForm = () => {
+const CounReqForm = ({ closeModal}) => {
   const [notes, setNotes] = useState(''); // State to hold the input text
   const [isFocused, setIsFocused] = useState(false);
   const textInputRef = useRef(null);
@@ -27,11 +27,31 @@ const CounReqForm = () => {
       name: name,
       notes: note,
       status: 'pending',
-      assignedstaff:'',
+      assignedstaff: '',
       email: userEmail,
       createdAt: new Date().toISOString()
     });
+
+    closeModal(false)
   }
+
+  const handleSendRequest = (userId, note) => {
+    Alert.alert(
+      "Confirm Request",
+      "This message is to confirm that you are sending a counselling request.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Confirm",
+          onPress: () => sendCounsellingReq(userId, note),
+          style: "destructive"
+        }
+      ]
+    );
+  };
 
   return (
     <TouchableWithoutFeedback onPress={handleOutsideClick}>
@@ -54,11 +74,19 @@ const CounReqForm = () => {
         <TouchableOpacity
           style={styles.buttonClose}
           onPress={() => {
-            sendCounsellingReq(userId, notes);
-            setNotes('');
+            if (notes === '') {
+              Alert.alert("Notes Required", "Please enter details regarding your counselling request.")
+            } else {
+              handleSendRequest(userId, notes);
+              setNotes('')
+            }
+            
           }}
         >
           <Text style={styles.textStyle}>Send Request</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.buttonClose} onPress={() => closeModal(false)}>
+            <Text style={styles.textStyle}>Cancel</Text>
         </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>
@@ -72,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 20,
     borderWidth: 3,
-    borderColor: '#ff9999'
+    borderColor: '#82c3f0'
   },
   textPrompt: {
     fontSize: 18,
@@ -84,7 +112,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 300,
     height: 40,
-    borderColor: '#ff9999',
+    borderColor: '#82c3f0',
     borderRadius: 8,
     borderWidth: 3,
     padding: 10,
@@ -96,7 +124,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 300,
     height: 40,
-    borderColor: '#ff9999',
+    borderColor: '#82c3f0',
     minHeight: 200,
     borderRadius: 8,
     borderWidth: 3,
@@ -105,7 +133,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top'
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,

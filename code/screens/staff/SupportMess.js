@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, onValue } from "firebase/database";
@@ -6,6 +6,7 @@ import { ref, onValue } from "firebase/database";
 const SupportMess = () => {
   const [staffMessages, setStaffMessages] = useState([]);
   const [expandedMessages, setExpandedMessages] = useState({}); // State for expanded messages
+  const [loading, setLoading] = useState(true); // State for loading
 
   useEffect(() => {
     const supportiveMesRef = ref(db, 'supportivemessages');
@@ -25,6 +26,7 @@ const SupportMess = () => {
         const sortedMessages = allMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setStaffMessages(sortedMessages);
       }
+      setLoading(false); // Stop loading once data is fetched
     });
 
     return () => unsubscribe(); // Cleanup subscription on unmount
@@ -43,6 +45,14 @@ const SupportMess = () => {
     if ( 16 < length && length < 20 )  return 18;
     return 17;
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -105,6 +115,11 @@ const styles = StyleSheet.create({
   content: {
     marginTop: 10,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 export default SupportMess;

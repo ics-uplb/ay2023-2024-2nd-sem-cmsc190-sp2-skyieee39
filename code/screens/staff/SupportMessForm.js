@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback  } from 'react-native'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, Alert, TouchableWithoutFeedback  } from 'react-native'
 import React, { useState, useRef } from 'react'
 import AppHeader from '../../components/AppHeader'
 import { useSelector } from 'react-redux';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { set, ref } from "firebase/database";
 
-const SupportMessForm = () => {
+const SupportMessForm = ({ closeModal }) => {
   const [content, setContent] = useState('');
   const [isContentFocused, setIsContentFocused] = useState(false);
   const contentInputRef = useRef(null);
@@ -47,10 +47,19 @@ const SupportMessForm = () => {
           onBlur={() => setIsContentFocused(false)}
         />
         <TouchableOpacity style={styles.buttonClose} onPress={() => {
-          addSupportiveMessage(userId, content)
-          setContent('');
+          if(content === '') {
+            Alert.alert("Content required", "Please enter your supportive message." );
+          } else {
+            addSupportiveMessage(userId, content);
+            setContent('');
+            closeModal(false);
+            Alert.alert("Supportive message posted successfully!" )
+          }
           }}>
           <Text style={styles.textStyle}>Post</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.buttonClose} onPress={() => closeModal(false)}>
+          <Text style={styles.textStyle}>Cancel</Text>
         </TouchableOpacity>
         {/* Other components */}
     </View>
@@ -65,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 30,
     borderWidth: 3,
-    borderColor: '#ff9999'
+    borderColor: '#82c3f0'
   },
   textPrompt: {
     fontSize: 18,
@@ -78,7 +87,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 300,
     height: 40,
-    borderColor: '#ff9999',
+    borderColor: '#82c3f0',
     minHeight: 200,
     borderRadius: 8,
     borderWidth: 3,
@@ -87,11 +96,12 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top'
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,
-    margin: 30
+    margin: 30,
+    marginVertical: 15
   },
   textStyle: {
     color: "white",

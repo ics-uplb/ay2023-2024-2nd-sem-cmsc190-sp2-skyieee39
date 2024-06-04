@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, onValue } from "firebase/database";
 import RelayedDetails from './RelayedDetails';
@@ -8,6 +8,7 @@ const RelayedCounReq = () => {
   const [relayedRequests, setRelayedRequests] = useState([]);
     const [selectedRequest, setselectedRequest] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [loading, setLoading] = useState(true); // State for loading
   
     useEffect(() => {
       const requestsRef = ref(db, 'counsellingrequests');
@@ -33,6 +34,7 @@ const RelayedCounReq = () => {
         // Sort pending requests from latest to earliest
         relayedRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setRelayedRequests(relayedRequests);
+        setLoading(false); // Stop loading once data is fetched
       }, {
         onlyOnce: false
       });
@@ -49,6 +51,14 @@ const RelayedCounReq = () => {
         if ( 16 < length && length < 20 )  return 18;
         return 17;
       };
+
+      if (loading) {
+        return (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        );
+      }
   
     return (
       <View style={styles.container}>
@@ -134,7 +144,7 @@ const RelayedCounReq = () => {
       marginTop: 10,
     },
     buttonClose: {
-      backgroundColor: "#B7505C",
+      backgroundColor: "#216a8d",
       borderRadius: 20,
       padding: 10,
       elevation: 2,
@@ -147,6 +157,11 @@ const RelayedCounReq = () => {
       fontWeight: "bold",
       textAlign: "center"
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }
   });
 
 

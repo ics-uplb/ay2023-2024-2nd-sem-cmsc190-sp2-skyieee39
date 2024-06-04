@@ -10,8 +10,8 @@ const StatusBar = ({ components }) => {
         initialRouteName="Home"
         activeColor="#f0edf6"
         inactiveColor="#4e2025"
-        barStyle={{ backgroundColor: '#B7505C', 
-        paddingBottom: 8
+        barStyle={{ backgroundColor: '#619aa9', 
+        paddingBottom: 8,
         }}
       >
         {components.map((screen) => (

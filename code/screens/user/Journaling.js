@@ -1,270 +1,135 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
+import React, { useState } from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSelector } from 'react-redux';
-import { db } from '../../firebase-config'; // Import your database configuration
-import { ref, onValue, remove } from "firebase/database"; // Use onValue to listen for real-time updates
-import JournForm from './JournForm';
-import JournalDetail from './JournalDetail';
-import EditJournal from './EditJournal';
-import { decryptData } from '../../security/userSecurity';
+import JournalList from './JournalList'
+import PersonalReport from './PersonalReport';
 
 const Journaling = () => {
+  const [modalVisible, setModalVisible] = useState(false)
+  const [selectedScreen, setSelectedScreen] = useState('JournalList');
   const userId = useSelector(state => state.user.userId);
-  const [selectedJournal, setSelectedJournal] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [journModalVisible, setJournModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [userJournals, setUserJournals] = useState([]);
-
-  useEffect(() => {
-    const journalRef = ref(db, 'journals/' + userId);
-    const unsubscribe = onValue(journalRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const journalsArray = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key],
-          content: decryptData(data[key].content)  // Decrypt content here
-        })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setUserJournals(journalsArray);
-      }
-    }, {
-      onlyOnce: false // Set this if you want to fetch the data only once
-    });
-
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [userId]);
-
-  const confirmDeleteJournal = (journalId) => {
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this journal?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Delete",
-          onPress: () => handleDeleteJournal(journalId),
-          style: "destructive"
-        }
-      ]
-    );
-  };
-
-  const handleDeleteJournal = (journalId) => {
-    const journalRef = ref(db, 'journals/' + userId + '/' + journalId);
-    remove(journalRef)
-      .then(() => {
-        console.log('Journal deleted successfully');
-        setUserJournals(prevJournals => prevJournals.filter(journal => journal.id !== journalId))
-      })
-      .catch((error) => {
-        console.error('Failed to delete journal: ', error);
-      });
-  };
-
-  const handleEditJournal = (journal) => {
-    setSelectedJournal(journal);
-    setEditModalVisible(true);
-  };
-
-  const handleUpdateJournal = (updatedJournal) => {
-    const decryptedJournal = {
-        ...updatedJournal,
-        content: decryptData(updatedJournal.content) // Decrypt the content before updating the state
-    };
-    setUserJournals(prevJournals => 
-      prevJournals.map(journal => 
-        journal.id === decryptedJournal.id ? decryptedJournal : journal
-      )
-    );
-    setEditModalVisible(false);
-};
-
-const getDynamicFontSize = (name) => {
-  const length = name.length;
-  if (length <= 16) return 22;
-  if ( 16 < length && length < 20 )  return 18;
-  return 17;
-};
-
-const getHighlightColor = (sentiment) => {
-  if (sentiment === 'positive') return styles.positiveTitle;
-  if (sentiment ==='negative') return styles.negativeTitle;
-  return styles.neutralTitle;
-};
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        showsHorizontalScrollIndicator={false}
-      >
-        {userJournals.map((journal, index) => {
-          const highlightStyle = getHighlightColor(journal.sentiment);
-          return (
-            <TouchableOpacity key={index} onPress={() => {
-              setSelectedJournal(journal);
-              setJournModalVisible(true);
-            }}>
-              <View style={styles.card}>
-                <View style={styles.header}>
-                  <Text style={[styles.title, highlightStyle, { fontSize: getDynamicFontSize(journal.title) }]}>{journal.title}</Text>
-                  <View style={styles.updateButtons}>
-                    <TouchableOpacity onPress={() => handleEditJournal(journal)}>
-                      <MaterialCommunityIcons name='pencil' color='black' size={25} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => confirmDeleteJournal(journal.id)}>
-                      <MaterialCommunityIcons name='delete' color='black' size={25} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <View style={styles.content}>
-                  <Text style={styles.text}>
-                    {journal.content.length > 85 ? journal.content.substring(0, 85) + '...' : journal.content}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-      <TouchableOpacity 
-        style={styles.floatingbutton}
-        onPress={() => setModalVisible(true)}
-      >
-        <MaterialCommunityIcons name='plus-circle' color='#B7505C' size={70} />
-      </TouchableOpacity>
-      <SafeAreaView>
-        <Modal
-          animationType="slide"
-          visible={modalVisible}
-        >
-          <SafeAreaView style={{ flex: 1, backgroundColor:'#d9d9d9' }}>
-            <JournForm />
-            <TouchableOpacity style={styles.buttonClose} onPress={() => setModalVisible(false)}>
-              <Text style={styles.textStyle}>Cancel</Text>
-            </TouchableOpacity>
-          </SafeAreaView>
-        </Modal>
-      </SafeAreaView>
-      <SafeAreaView>
-        <Modal
-          animationType="slide"
-          visible={journModalVisible}
-        >
-          <SafeAreaView style={{ flex: 1, backgroundColor:'#d9d9d9' }}>
-            {selectedJournal && (
-              <JournalDetail 
-                journal={selectedJournal} 
-                closeModal={setJournModalVisible}
-              />
-            )}
-            <TouchableOpacity style={styles.buttonClose} onPress={() => setJournModalVisible(false)}>
-              <Text style={styles.textStyle}>Back</Text>
-            </TouchableOpacity>
-          </SafeAreaView>
-        </Modal>
-        <Modal
-          animationType="slide"
-          visible={editModalVisible}
-        >
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#d9d9d9' }}>
-            {selectedJournal && (
-              <EditJournal 
-                journal={selectedJournal}
-                onSave={handleUpdateJournal}
-              />
-            )}
-            <TouchableOpacity style={styles.buttonClose} onPress={() => setEditModalVisible(false)}>
-              <Text style={styles.textStyle}>Back</Text>
-            </TouchableOpacity>
-          </SafeAreaView>
-        </Modal>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[styles.button, selectedScreen === 'JournalList' && styles.selectedButton]}
+            onPress={() => setSelectedScreen('JournalList')}
+          >
+            <Text style={[styles.buttonText, selectedScreen === 'JournalList' && styles.selectedText]}>Journals</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, selectedScreen === 'PersonalReport' && styles.selectedButton]}
+            onPress={() => setSelectedScreen('PersonalReport')}
+          >
+            <Text style={[styles.buttonText, selectedScreen === 'PersonalReport' && styles.selectedText]}>Mood Reports</Text>
+          </TouchableOpacity>
+        </View>
+        {selectedScreen === 'JournalList' ? <JournalList /> : <PersonalReport />}
       </SafeAreaView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  prompt: {
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    borderRadius: 10,
+    margin: 30,
+    borderWidth: 3,
+    borderColor: '#ff9999'
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   floatingbutton: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    right: 15,
-    bottom: 15,
+    right:10,
+    bottom: 10,
+    borderRadius: 45,
+    backgroundColor: 'white'
   },
-  updateButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: -1,
+  textPrompt: {
+    fontSize: 18,
+    fontFamily: 'CantataOne-Regular',
+    padding: 5,
   },
-  positiveTitle: {
-    backgroundColor: 'rgba(212, 237, 218, 0.9)', // Light green with lower opacity
+  input: {
+    backgroundColor: '#ffffff',
+    alignSelf: 'center',
+    width: 300,
+    height: 40,
+    borderColor: '#ff9999',
+    borderRadius: 8,
+    borderWidth: 3,
+    padding: 10,
+    fontFamily: 'CantataOne-Regular'
   },
-  negativeTitle: {
-    backgroundColor: 'rgba(255, 158, 84, 0.5)'
-  },
-  neutralTitle: {
-    backgroundColor: 'rgba(255, 245, 56, 0.5)', // Light yellow
+  bodyinput: {
+    marginTop: 10,
+    backgroundColor: '#ffffff',
+    alignSelf: 'center',
+    width: 300,
+    height: 40,
+    borderColor: '#ff9999',
+    minHeight: 200,
+    borderRadius: 8,
+    borderWidth: 3,
+    padding: 10,
+    fontFamily: 'CantataOne-Regular',
+    textAlignVertical: 'top'
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,
-    marginTop: 15,
-    marginHorizontal: 30,
-    marginBottom: 5,
+    margin: 30
   },
   textStyle: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center"
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 18,
-    shadowColor: 'black',
-    shadowOffset: {
-        width: 0,
-        height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 14,
-    width: 300,
-    height: 140,
-    margin: 20
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 25,
+    padding: 1,
+    margin: 20,
   },
-  header: {
-    marginBottom: 16,
-    flexDirection: 'row', 
-    justifyContent: 'space-between'
+  button: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 2,
+    borderRadius: 25,
   },
-  title: {
-    fontSize: 25,
-    fontFamily: 'CantataOne-Regular',
-    color: 'black',
-    width: 180,
+  selectedButton: {
+    backgroundColor: '#ffffff',
   },
-  content: {
-    marginBottom: 10,
-    paddingBottom: 20,
+  buttonText: {
+    fontSize: 15,
+    color: '#888888',
+  },
+  selectedText: {
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  screenContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   text: {
-    fontSize: 15,
-    color: '#444444',
-    paddingBottom: 15
+    fontSize: 20,
   },
 });
 

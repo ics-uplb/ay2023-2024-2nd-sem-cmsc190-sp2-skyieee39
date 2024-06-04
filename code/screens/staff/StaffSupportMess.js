@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Modal, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, SafeAreaView, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import SupportMessForm from './SupportMessForm';
@@ -13,6 +13,7 @@ const StaffSupportMess = () => {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const userId = useSelector(state => state.user.userId);
   const [staffMessages, setStaffMessages] = useState([]);
+  const [loading, setLoading] = useState(true); // State for loading
   const [expandedMessages, setExpandedMessages] = useState({}); // State for expanded messages
 
   useEffect(() => {
@@ -26,6 +27,7 @@ const StaffSupportMess = () => {
         })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setStaffMessages(supportMessArray);
       }
+      setLoading(false); // Stop loading once data is fetched
     }, {
       onlyOnce: false // Set this if you want to fetch the data only once
     });
@@ -82,6 +84,14 @@ const StaffSupportMess = () => {
     return 17;
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -114,7 +124,7 @@ const StaffSupportMess = () => {
           style={styles.floatingbutton}
           onPress={() => setModalVisible(true)}
         >
-          <MaterialCommunityIcons name='plus-circle' color='#B7505C' size={70} />
+          <MaterialCommunityIcons name='plus-circle' color='#216a8d' size={80} />
         </TouchableOpacity>
       )}
       <SafeAreaView>
@@ -123,10 +133,7 @@ const StaffSupportMess = () => {
           visible={modalVisible}
         >
           <SafeAreaView style={{ flex: 1, backgroundColor: '#d9d9d9' }}>
-            <SupportMessForm />
-            <TouchableOpacity style={styles.buttonClose} onPress={() => setModalVisible(false)}>
-              <Text style={styles.textStyle}>Cancel</Text>
-            </TouchableOpacity>
+            <SupportMessForm closeModal={setModalVisible}/>
           </SafeAreaView>
         </Modal>
         <Modal
@@ -134,10 +141,7 @@ const StaffSupportMess = () => {
           visible={editModalVisible}
         >
           <SafeAreaView style={{ flex: 1, backgroundColor: '#d9d9d9' }}>
-            {selectedMessage && <EditSuppMess message={selectedMessage} />}
-            <TouchableOpacity style={styles.buttonClose} onPress={() => setEditModalVisible(false)}>
-              <Text style={styles.textStyle}>Back</Text>
-            </TouchableOpacity>
+            {selectedMessage && <EditSuppMess message={selectedMessage} closeModal={setEditModalVisible} />}
           </SafeAreaView>
         </Modal>
       </SafeAreaView>
@@ -155,11 +159,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    right: 15,
-    bottom: 15,
+    right: 10,
+    bottom: 10,
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,
@@ -207,6 +211,11 @@ const styles = StyleSheet.create({
   content: {
     marginTop: 10,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 export default StaffSupportMess;

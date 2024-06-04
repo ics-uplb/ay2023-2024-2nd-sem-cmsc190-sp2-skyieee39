@@ -42,10 +42,7 @@ const CounsellingReq = () => {
           visible={modalVisible}
         >
           <SafeAreaView style={{ flex: 1, backgroundColor:'#d9d9d9' }}>
-            <CounReqForm />
-            <TouchableOpacity style={styles.buttonClose} onPress={() => setModalVisible(false)}>
-              <Text style={styles.textStyle}>Cancel</Text>
-            </TouchableOpacity>
+            <CounReqForm closeModal={setModalVisible} />
           </SafeAreaView>
         </Modal>
       </SafeAreaView>
@@ -74,7 +71,7 @@ const styles = StyleSheet.create({
     right:15,
     bottom: 15,
     borderRadius: 45,
-    backgroundColor: '#B7505C'
+    backgroundColor: '#216a8d'
   },
   textPrompt: {
     fontSize: 18,
@@ -107,7 +104,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top'
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,

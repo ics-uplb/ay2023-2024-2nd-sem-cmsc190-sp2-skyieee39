@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
       fontFamily: 'CantataOne-Regular',
     },
     buttonClose: {
-        backgroundColor: "#B7505C",
+        backgroundColor: "#216a8d",
         borderRadius: 20,
         padding: 10,
         elevation: 2,

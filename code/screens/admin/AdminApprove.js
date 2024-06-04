@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, get, remove, update } from "firebase/database";
@@ -9,6 +9,7 @@ const AdminApprove = () => {
   const [approvedStaffs, setApprovedStaffs] = useState([]);
   const [approvedAdmins, setApprovedAdmins] = useState([]);
   const userId = useSelector(state => state.user.userId);
+  const [loading, setLoading] = useState(true); // State for loading
 
 
   useEffect(() => {
@@ -35,6 +36,7 @@ const AdminApprove = () => {
     };
 
     fetchApprovedUsers();
+    setLoading(false);
   }, []);
 
   const confirmDeleteAdmin = (userId) => {
@@ -97,6 +99,14 @@ const getDynamicFontSize = (name) => {
   if ( 16 < length && length < 20 )  return 16;
   return 15;
 };
+
+if (loading) {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#0000ff" />
+    </View>
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -212,6 +222,11 @@ buttonApprove: {
     marginTop: 7,
     marginLeft: 10
 },
+loadingContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+}
 });
 
 export default AdminApprove;

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { db } from '../../firebase-config'; // Import your database configuration
 import { ref, get, update, remove } from "firebase/database";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const StaffReq = () => {
     const [pendingStaff, setPendingStaff] = useState([]);
+    const [loading, setLoading] = useState(true); // State for loading
 
     useEffect(() => {
         const fetchPendingStaff = async () => {
@@ -23,6 +24,7 @@ const StaffReq = () => {
         };
 
         fetchPendingStaff();
+        setLoading(false);
     }, []);
 
     const approveStaff = async (userId) => {
@@ -64,6 +66,14 @@ const StaffReq = () => {
         return 15;
       };
 
+      if (loading) {
+        return (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        );
+      }
+
   return (
     <View style={styles.container}>
             <ScrollView 
@@ -74,7 +84,7 @@ const StaffReq = () => {
                     <View key={index} style={styles.accContainer}>
                         <View>
                             <Text style={[styles.nameStyle, { fontSize: getDynamicFontSize(staff.name) }]}>{staff.name}</Text>
-                            <Text>{staff.email}</Text>
+                            <Text style={styles.email}>{staff.email}</Text>
                         </View>
                         <View style={styles.buttonContainer}> 
                             <TouchableOpacity style={styles.buttonApprove} onPress={() => approveStaff(staff.userId)}>
@@ -97,6 +107,9 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: '#FFF',
     },
+    email:{
+        fontSize: 11.5
+    },
     accContainer: {
         backgroundColor: '#ECECEC',
         padding: 15,
@@ -113,7 +126,7 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
     },
     nameStyle: {
         fontSize: 17,
@@ -136,6 +149,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }
 });
 
 export default StaffReq

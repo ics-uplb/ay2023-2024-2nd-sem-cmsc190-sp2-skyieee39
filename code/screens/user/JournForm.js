@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Alert, Modal } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import { useSelector } from 'react-redux';
 import { db } from '../../firebase-config'; // Import your database configuration
@@ -7,15 +7,18 @@ import { set, ref } from "firebase/database";
 import { encryptData } from '../../security/userSecurity';
 import Sentiment from 'sentiment';
 
-const JournForm = () => {
+const JournForm = ({ closeModal }) => {
   const [title, setTitle] = useState(''); // State to hold the input text
   const [content, setContent] = useState(''); // State to hold the input text
   const [isTitleFocused, setIsTitleFocused] = useState(false);
   const [isContentFocused, setIsContentFocused] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [detectedSentiment, setDetectedSentiment] = useState('');
+  const [userSentiment, setUserSentiment] = useState('');
+
   const titleInputRef = useRef(null);
   const contentInputRef = useRef(null);
   const userId = useSelector(state => state.user.userId);
-
 
   const handleOutsideClick = () => {
     Keyboard.dismiss(); // Dismiss the keyboard
@@ -46,22 +49,14 @@ const JournForm = () => {
     }
   };
 
-  const addJournalEntry = async (userId, title, content) => {
+  const addJournalEntry = async (userId, title, content, sentiment) => {
     try {
-      const sentimentResult = analyzeSentiment(content);
-      if (!sentimentResult || sentimentResult.score === undefined) {
-        throw new Error('Sentiment analysis failed or returned undefined.');
-      }
-
-      const sentiment = classifySentiment(sentimentResult.score);
-
       const entryRef = ref(db, 'journals/' + userId + '/' + 'entry' + new Date().getTime()); // Using timestamp as a unique key for entries
       const encryptedContent = encryptData(content);
       await set(entryRef, {
         title,
         content: encryptedContent,
         sentiment: sentiment,
-        sentimentScore: sentimentResult.score,
         createdAt: new Date().toISOString()
       });
 
@@ -72,6 +67,25 @@ const JournForm = () => {
     }
   };
 
+  const handlePost = async () => {
+    const sentimentResult = analyzeSentiment(content);
+    if (!sentimentResult || sentimentResult.score === undefined) {
+      throw new Error('Sentiment analysis failed or returned undefined.');
+    }
+
+    const sentiment = classifySentiment(sentimentResult.score);
+    setDetectedSentiment(sentiment);
+    setUserSentiment(sentiment);
+    setIsModalVisible(true);
+  };
+
+  const handleConfirmSentiment = async () => {
+    setIsModalVisible(false);
+    await addJournalEntry(userId, title, content, userSentiment);
+    setTitle('');
+    setContent('');
+    closeModal(false);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={handleOutsideClick}>
@@ -100,14 +114,46 @@ const JournForm = () => {
           onFocus={() => setIsContentFocused(true)}
           onBlur={() => setIsContentFocused(false)}
         />
-        <TouchableOpacity style={styles.buttonClose} onPress={async () => {
-          await addJournalEntry(userId, title, content); // Ensure to use await here as well
-          setTitle('');
-          setContent('');
-        }}>
+        <TouchableOpacity style={styles.buttonClose} onPress={() => {
+          if (content === '' || title === '') {
+            Alert.alert("Content and Title Required", "Please enter journal content and/or title.")
+          } else {
+            handlePost();
+          }
+          }}>
           <Text style={styles.textStyle}>Post</Text>
         </TouchableOpacity>
-        {/* Other components */}
+        <TouchableOpacity style={styles.buttonClose} onPress={() => closeModal(false)}>
+          <Text style={styles.textStyle}>Cancel</Text>
+        </TouchableOpacity>
+        
+        <Modal
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => setIsModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>We detected the sentiment as {detectedSentiment}. Is this correct?</Text>
+              <View style={styles.radioContainer}>
+                <TouchableOpacity onPress={() => setUserSentiment('positive')}>
+                  <Text style={userSentiment === 'positive' ? styles.selectedRadio : styles.radio}>Positive</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setUserSentiment('neutral')}>
+                  <Text style={userSentiment === 'neutral' ? styles.selectedRadio : styles.radio}>Neutral</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setUserSentiment('negative')}>
+                  <Text style={userSentiment === 'negative' ? styles.selectedRadio : styles.radio}>Negative</Text>
+                </TouchableOpacity>
+              </View>
+              <View>
+                <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmSentiment}>
+                  <Text style={styles.textStyle}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -120,7 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 30,
     borderWidth: 3,
-    borderColor: '#ff9999'
+    borderColor: '#82c3f0'
   },
   textPrompt: {
     fontSize: 18,
@@ -132,7 +178,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 300,
     height: 40,
-    borderColor: '#ff9999',
+    borderColor: '#82c3f0',
     borderRadius: 8,
     borderWidth: 3,
     padding: 10,
@@ -144,7 +190,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 300,
     height: 40,
-    borderColor: '#ff9999',
+    borderColor: '#82c3f0',
     minHeight: 185,
     borderRadius: 8,
     borderWidth: 3,
@@ -153,17 +199,57 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top'
   },
   buttonClose: {
-    backgroundColor: "#B7505C",
+    backgroundColor: "#216a8d",
     borderRadius: 20,
     padding: 10,
     elevation: 2,
-    margin: 30
+    marginTop: 30,
+    marginHorizontal: 30
   },
   textStyle: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center"
-  }
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  radioContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 20,
+  },
+  radio: {
+    fontSize: 16,
+    padding: 10,
+  },
+  selectedRadio: {
+    fontSize: 16,
+    padding: 10,
+    fontWeight: 'bold',
+    color: 'blue',
+  },
+  confirmButton: {
+    backgroundColor: "#216a8d",
+    borderRadius: 20,
+    width: 130,
+    padding: 10,
+    elevation: 2,
+  },
 });
 
 export default JournForm;

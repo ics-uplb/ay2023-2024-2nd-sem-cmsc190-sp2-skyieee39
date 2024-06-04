@@ -17,14 +17,16 @@ const AppHeader = () => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#B7505C',  // Adjust the color to match the screenshot
+    backgroundColor: '#619aa9',  
     justifyContent: 'center',
-    height: 100,  // Adjust based on your design requirements
-    borderBottomWidth: 0,  // Removes the default border if necessary
+    height: 100, 
+    borderBottomWidth: 0, 
+    borderBottomLeftRadius: 17,
+    borderBottomRightRadius: 17 
   },
   heading: {
     color: '#FFFFFF',
-    fontSize: 35,  // Adjust font size as needed
+    fontSize: 35,  
     fontFamily: 'CantataOne-Regular'
   }
 });

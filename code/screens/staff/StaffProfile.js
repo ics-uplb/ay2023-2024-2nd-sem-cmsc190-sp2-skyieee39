@@ -78,7 +78,7 @@ const StaffProfile = () => {
                     style={({ pressed }) => [
                         styles.button,
                         {
-                            backgroundColor: pressed ? '#942037' : '#B7505C' // Change background color when pressed
+                            backgroundColor: pressed ? '#12404f' : '#216a8d' // Change background color when pressed
                         }
                     ]}
                     onPress={signOut}>
@@ -88,7 +88,7 @@ const StaffProfile = () => {
                     style={({ pressed }) => [
                         styles.button,
                         {
-                            backgroundColor: pressed ? '#942037' : '#B7505C' // Change background color when pressed
+                            backgroundColor: pressed ? '#12404f' : '#216a8d' // Change background color when pressed
                         }
                     ]}
                     onPress={confirmAdminRequest}>
@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       borderRadius: 10,
       margin: 20,
+      marginBottom: 10,
       shadowColor: 'black',
       shadowOffset: {
         width: 0,
@@ -152,6 +153,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       borderRadius: 10,
       margin: 20,
+      marginBottom: 5,
       padding: 10,
       shadowColor: 'black',
       shadowOffset: {

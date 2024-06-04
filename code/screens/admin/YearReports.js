@@ -10,7 +10,9 @@ const screenWidth = Dimensions.get('window').width;
 
 const YearReports = () => {
   const [yearlyData, setYearlyData] = useState([]);
+  const [overallMood, setOverallMood] = useState('');
   const [loading, setLoading] = useState(true);
+  const [noEntries, setNoEntries] = useState(false); 
 
   useEffect(() => {
     const journalEntriesRef = ref(db, 'journals');
@@ -28,6 +30,9 @@ const YearReports = () => {
           }
         }
         processData(allEntries);
+      } else {
+        setNoEntries(true); // Set no entries if data is null
+        setLoading(false); // Stop loading indicator
       }
     });
 
@@ -37,6 +42,8 @@ const YearReports = () => {
 
   const processData = (entries) => {
     const now = moment();
+    let totalSentimentScore = 0;
+    let entryCount = 0;
     let yearlyCounts = { positive: 0, neutral: 0, negative: 0 };
 
     for (let key in entries) {
@@ -45,10 +52,17 @@ const YearReports = () => {
 
       if (entryDate.isSame(now, 'year')) {
         updateCounts(yearlyCounts, entry.sentiment);
+        totalSentimentScore += classifySentimentScore(entry.sentiment);
+        entryCount++;
       }
     }
 
-    setYearlyData(formatChartData(yearlyCounts));
+    if (entryCount === 0) {
+      setNoEntries(true);
+    } else {
+      setYearlyData(formatChartData(yearlyCounts));
+      setOverallMood(calculateOverallMood(totalSentimentScore, entryCount));
+    }
     setLoading(false);
   };
 
@@ -56,6 +70,21 @@ const YearReports = () => {
     if (sentiment === 'positive') counts.positive++;
     if (sentiment === 'neutral') counts.neutral++;
     if (sentiment === 'negative') counts.negative++;
+  };
+
+  const classifySentimentScore = (sentiment) => {
+    if (sentiment === 'positive') return 1;
+    if (sentiment === 'neutral') return 0;
+    if (sentiment === 'negative') return -1;
+    return 0;
+  };
+
+  const calculateOverallMood = (totalScore, count) => {
+    if (count === 0) return 'No entries';
+    const averageScore = totalScore / count;
+    if (averageScore > 0) return 'Positive';
+    if (averageScore < 0) return 'Negative';
+    return 'Neutral';
   };
 
   const formatChartData = (counts) => {
@@ -106,6 +135,7 @@ const YearReports = () => {
             paddingLeft="15"
             absolute
         />
+        <Text style={styles.overallMood}>Overall Mood: {overallMood}</Text>
         </ScrollView>
     </View>
   );
@@ -135,6 +165,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 10,
     textAlign: 'center'
+  },
+  overallMood: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    textAlign: 'center',
   },
 });
 

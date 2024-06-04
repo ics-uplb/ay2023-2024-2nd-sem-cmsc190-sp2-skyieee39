@@ -1,35 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text, ScrollView } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import { ref, onValue } from 'firebase/database';
 import moment from 'moment';
 import { db } from '../../firebase-config';  // Adjust the import path as necessary
+import { useSelector } from 'react-redux';
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
-const MonthReports = () => {
-  const [monthlyData, setMonthlyData] = useState([]);
-  const [overallMood, setOverallMood] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [noEntries, setNoEntries] = useState(false);
+const MonthReport = () => {
+    const [monthlyData, setMonthlyData] = useState([]);
+    const [overallMood, setOverallMood] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [noEntries, setNoEntries] = useState(false); 
+    const userId = useSelector(state => state.user.userId);
+
 
   useEffect(() => {
-    const journalEntriesRef = ref(db, 'journals');
+    const journalEntriesRef = ref(db, 'journals/' + userId);
     const unsubscribe = onValue(journalEntriesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const allEntries = [];
-        for (let userId in data) {
-          for (let entryId in data[userId]) {
-            allEntries.push({
-              id: entryId,
-              userId,
-              ...data[userId][entryId],
-            });
-          }
+        const entries = [];
+        for (let entryId in data) {
+          entries.push({
+            id: entryId,
+            ...data[entryId],
+          });
         }
-        processData(allEntries);
+        processData(entries);
       } else {
         setNoEntries(true); // Set no entries if data is null
         setLoading(false); // Stop loading indicator
@@ -39,15 +40,13 @@ const MonthReports = () => {
     return () => unsubscribe(); // Cleanup subscription on unmount
   }, []);
 
-
   const processData = (entries) => {
     const now = moment();
+    let monthlyCounts = { positive: 0, neutral: 0, negative: 0 };
     let totalSentimentScore = 0;
     let entryCount = 0;
-    let monthlyCounts = { positive: 0, neutral: 0, negative: 0 };
 
-    for (let key in entries) {
-      const entry = entries[key];
+    for (let entry of entries) {
       const entryDate = moment(entry.createdAt);
 
       if (entryDate.isSame(now, 'month')) {
@@ -56,6 +55,7 @@ const MonthReports = () => {
         entryCount++;
       }
     }
+
     if (entryCount === 0) {
       setNoEntries(true);
     } else {
@@ -64,6 +64,7 @@ const MonthReports = () => {
     }
     setLoading(false);
   };
+
 
   const updateCounts = (counts, sentiment) => {
     if (sentiment === 'positive') counts.positive++;
@@ -87,29 +88,14 @@ const MonthReports = () => {
   };
 
   const formatChartData = (counts) => {
-    return [
-      {
-        name: 'Positive',
-        population: counts.positive,
-        color: 'green',
-        legendFontColor: '#7F7F7F',
-        legendFontSize: 15,
-      },
-      {
-        name: 'Neutral',
-        population: counts.neutral,
-        color: 'yellow',
-        legendFontColor: '#7F7F7F',
-        legendFontSize: 15,
-      },
-      {
-        name: 'Negative',
-        population: counts.negative,
-        color: 'orange',
-        legendFontColor: '#7F7F7F',
-        legendFontSize: 15,
-      },
-    ];
+    return {
+      labels: ['Positive', 'Neutral', 'Negative'],
+      datasets: [
+        {
+          data: [counts.positive, counts.neutral, counts.negative],
+        },
+      ],
+    };
   };
 
   if (loading) {
@@ -120,23 +106,29 @@ const MonthReports = () => {
     );
   }
 
+  if (noEntries) {
+    return (
+      <View style={styles.noEntriesContainer}>
+        <Text style={styles.noEntriesText}>No journal entries</Text>
+      </View>
+    );
+  }
+
   return (
     <View>
-        <Text style={styles.chartTitle}>Journal Sentiment Report</Text>
-        <ScrollView contentContainerStyle={styles.container}>
-        
-        <PieChart
-            data={monthlyData}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            absolute
+      <Text style={styles.chartTitle}>Journal Sentiment Report</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <BarChart
+          data={monthlyData}
+          width={screenWidth}
+          height={screenHeight * 0.4}
+          chartConfig={chartConfig}
+          fromZero={true}
+          showValuesOnTopOfBars={true}
+          style={styles.chartStyle}
         />
         <Text style={styles.overallMood}>Overall Mood: {overallMood}</Text>
-        </ScrollView>
+      </ScrollView>
     </View>
   );
 };
@@ -145,7 +137,12 @@ const chartConfig = {
   backgroundColor: '#1cc910',
   backgroundGradientFrom: '#eff3ff',
   backgroundGradientTo: '#efefef',
+  decimalPlaces: 0,
   color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  style: {
+    borderRadius: 16,
+  },
 };
 
 const styles = StyleSheet.create({
@@ -164,7 +161,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginVertical: 10,
-    textAlign: 'center'
+    textAlign: 'center',
+  },
+  noEntriesText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  chartStyle: {
+    borderRadius: 25,
   },
   overallMood: {
     fontSize: 18,
@@ -174,4 +178,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MonthReports;
+export default MonthReport;

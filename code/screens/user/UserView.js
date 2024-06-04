@@ -1,6 +1,6 @@
 // SupportMessUser.js
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import StatusBar from '../../components/StatusBar';
 import {Profile, SupportiveMessages, CounsellingReq, Journaling} from './index';
