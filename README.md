@@ -5,4 +5,6 @@ The recent COVID-19 pandemic made numerous psychological and mental impacts on t
 
 Keywords: mental health, mobile application, sentiment analysis, journaling
 
+MRUANACLETO verified 14 August 2024
+
 Read [How To Document](HOWTO.md) for more details.
